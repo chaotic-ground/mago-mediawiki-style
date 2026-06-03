@@ -51,18 +51,24 @@ jobs:
           mago_max=$(mago --php-version 99.0 config 2>&1 \
             | grep -oE 'maximum supported version is [0-9]+\.[0-9]+' \
             | grep -oE '[0-9]+\.[0-9]+$' || true)
-          if [ -z "$mw_min" ] || [ -z "$mago_max" ]; then
-            echo "Could not detect versions (MediaWiki min: '$mw_min', mago max: '$mago_max')" >&2
+          # MediaWiki's machine-readable constraint is a lower bound only; its
+          # documented upper bound (Compatibility#PHP on mediawiki.org) tracks
+          # the latest released PHP, so use that as the proxy.
+          php_latest=$(curl -s 'https://www.php.net/releases/?json' \
+            | jq -r 'to_entries | map(.value.version) | .[]' \
+            | grep -E '^[0-9.]+$' | sort -V | tail -1 \
+            | grep -oE '^[0-9]+\.[0-9]+' || true)
+          if [ -z "$mw_min" ] || [ -z "$mago_max" ] || [ -z "$php_latest" ]; then
+            echo "Could not detect versions (MediaWiki min: '$mw_min', mago max: '$mago_max', PHP latest: '$php_latest')" >&2
             exit 1
           fi
-          # MediaWiki's composer constraint is a lower bound only, so the
-          # newest mutually supported version is mago's maximum, unless mago
-          # has fallen behind MediaWiki's minimum.
-          if ! printf '%s\n%s\n' "$mw_min" "$mago_max" | sort -V -C; then
-            echo "::warning::mago's maximum ($mago_max) is below MediaWiki's minimum ($mw_min)"
+          version=$(printf '%s\n%s\n' "$mago_max" "$php_latest" | sort -V | head -1)
+          if ! printf '%s\n%s\n' "$mw_min" "$version" | sort -V -C; then
+            echo "::warning::newest mutual version ($version) is below MediaWiki's minimum ($mw_min)"
           fi
-          sed -i -E "s/^php-version = \"[^\"]*\"/php-version = \"$mago_max\"/" mago.toml
-          echo "version=$mago_max" >> "$GITHUB_OUTPUT"
+          echo "MediaWiki >= $mw_min, mago <= $mago_max, latest PHP release $php_latest -> $version"
+          sed -i -E "s/^php-version = \"[^\"]*\"/php-version = \"$version\"/" mago.toml
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Format and measure
         id: measure
