@@ -29,6 +29,11 @@ configured away:
   ->fetchRow()`), even with the `preserve-breaking-*` settings.
 - mago rewraps multi-line conditions that fit within the print width and
   may add clarifying parentheses around arithmetic inside comparisons.
+- `trailing-comma` is a single global boolean: mago either adds trailing
+  commas to every multi-line structure or removes them from all of them,
+  with no preserve option and no per-construct control. MediaWiki core
+  commonly uses them in multi-line arrays but not in call argument lists,
+  so either setting rewrites one side wholesale.
 
 ## Current baseline
 
