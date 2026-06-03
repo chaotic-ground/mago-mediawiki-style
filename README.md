@@ -35,7 +35,11 @@ configured away:
 The numbers below are written by the Parity workflow after every run.
 
 <!-- METRICS:START -->
-_No run recorded yet._
+- Measured: 2026-06-03
+- mago 1.29.0
+- MediaWiki: [wikimedia/mediawiki@b507ce5](https://github.com/wikimedia/mediawiki/commit/b507ce5b3ca49856de41b1358d763bcaa2ae8497)
+- Files mago would change: **5349** of 5540 PHP files
+- 5349 files changed, 339395 insertions(+), 318837 deletions(-)
 <!-- METRICS:END -->
 
 ## How it works
