@@ -40,6 +40,7 @@ configured away:
 The numbers below are written by the Parity workflow after every run.
 
 <!-- METRICS:START -->
+
 - Measured: 2026-06-03
 - mago 1.29.0
 - MediaWiki: [wikimedia/mediawiki@b507ce5](https://github.com/wikimedia/mediawiki/commit/b507ce5b3ca49856de41b1358d763bcaa2ae8497)
@@ -56,11 +57,11 @@ index e86bb61..756db1d 100644
 +++ b/.phan/config.php
 @@ -7,7 +7,7 @@
  $cfg = require __DIR__ . '/../vendor/mediawiki/mediawiki-phan-config/src/config.php';
- 
+
  // Unset the default value to make sure we use that from composer.json.
 -unset( $cfg['minimum_target_php_version'] );
 +unset($cfg['minimum_target_php_version']);
- 
+
  $cfg['file_list'] = array_merge(
  	$cfg['file_list'],
 @@ -18,7 +18,7 @@ $cfg['file_list'] = array_merge(
@@ -71,6 +72,7 @@ index e86bb61..756db1d 100644
 +		'tests/phpunit/includes/TestUser.php'
  	]
 ````
+
 <!-- METRICS:END -->
 
 ## How it works

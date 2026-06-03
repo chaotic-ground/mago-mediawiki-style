@@ -123,6 +123,7 @@ jobs:
           # Build the metrics block in a file and splice it in with getline,
           # so backslashes in the diff sample survive (awk -v would mangle them).
           {
+            echo
             printf -- '- Measured: %s\n- %s\n- MediaWiki: [wikimedia/mediawiki@%.7s](https://github.com/wikimedia/mediawiki/commit/%s)\n- PHP version: %s\n- Files mago would change: **%s** of %s PHP files\n- %s\n' \
               "$(date -u +%F)" "$MAGO" "$MEDIAWIKI_SHA" "$MEDIAWIKI_SHA" "$PHP_VERSION" "$CHANGED" "$TOTAL" "$SHORTSTAT"
             if [ -s "$RUNNER_TEMP/parity-sample.diff" ]; then
@@ -131,9 +132,12 @@ jobs:
               echo
               # A four-backtick fence: a context line of the diff itself could
               # start with three backticks and would close a normal fence.
+              # Trailing whitespace is stripped: empty diff context lines are a
+              # single space, which markdown linters flag.
               echo '````diff'
-              cat "$RUNNER_TEMP/parity-sample.diff"
+              sed -E 's/[[:space:]]+$//' "$RUNNER_TEMP/parity-sample.diff"
               echo '````'
+              echo
             fi
           } > "$RUNNER_TEMP/metrics.md"
           awk -v metricsfile="$RUNNER_TEMP/metrics.md" '

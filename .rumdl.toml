@@ -1,0 +1,3 @@
+[MD013]
+# The README embeds a verbatim diff sample whose lines can be long.
+code_blocks = false
