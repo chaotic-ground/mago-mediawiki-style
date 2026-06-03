@@ -11,19 +11,22 @@ records how far away we are.
 
 ## Current status
 
-Not reachable yet. The dominant blocker is that MediaWiki puts spaces
-inside parentheses and array brackets:
+Not reachable yet. Known differences that mago cannot currently be
+configured away:
 
-```php
-if ( $x ) {
-	foo( $arg );
-	$a = [ 'key' => 'value' ];
-}
-```
-
-mago only offers `space-within-grouping-parenthesis`; there are no
-options for control structures, call/parameter lists, or array brackets.
-Until upstream grows such options, nearly every file in core differs.
+- MediaWiki puts spaces inside control-structure and call parentheses:
+  `if ( $x )`, `foo( $arg )`. mago only offers
+  `space-within-grouping-parenthesis`; there is no option for control
+  structures, call/argument lists, or parameter lists.
+- MediaWiki puts spaces inside array brackets: `[ 'key' => $value ]`.
+- mago rewrites `#` line comments to `//`. mediawiki-codesniffer agrees
+  with that direction, but core still contains `#` comments, so the
+  rewrite inflates the diff.
+- mago reflows broken method chains onto one call per line, while core
+  often groups several calls on a line (e.g. `->caller( __METHOD__ )
+  ->fetchRow()`), even with the `preserve-breaking-*` settings.
+- mago rewraps multi-line conditions that fit within the print width and
+  may add clarifying parentheses around arithmetic inside comparisons.
 
 Baseline (mago 1.29.0, 2026-06): 5349 of 5540 PHP files changed,
 roughly +339k/-319k lines.

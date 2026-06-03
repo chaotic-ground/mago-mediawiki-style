@@ -1,10 +1,8 @@
 # A mago configuration that aims to reproduce the MediaWiki coding style
 # (mediawiki/mediawiki-codesniffer) as closely as mago allows.
 #
-# Known unreachable: MediaWiki puts spaces inside control-structure and
-# call parentheses, e.g. `if ( $x )` and `foo( $arg )`. mago has no option
-# for that (only `space-within-grouping-parenthesis`), so a zero diff
-# against MediaWiki core is impossible until upstream grows such options.
+# A zero diff against MediaWiki core is not reachable yet; see README.md
+# for the list of known differences that cannot be configured away.
 
 php-version = "8.3"
 
