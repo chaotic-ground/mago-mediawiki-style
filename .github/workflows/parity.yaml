@@ -1,0 +1,70 @@
+name: Parity
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly, to track both the latest MediaWiki core and the latest mago.
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve latest MediaWiki commit
+        id: mediawiki
+        run: |
+          echo "sha=$(git ls-remote https://github.com/wikimedia/mediawiki.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v5
+        with:
+          path: mediawiki
+          key: mediawiki-src-${{ steps.mediawiki.outputs.sha }}
+          restore-keys: |
+            mediawiki-src-
+
+      - name: Clone or update MediaWiki
+        run: |
+          if [ -d mediawiki/.git ]; then
+            git -C mediawiki fetch --depth=1 origin master
+            git -C mediawiki reset --hard origin/master
+            git -C mediawiki clean -fdx --quiet
+          else
+            git clone --depth=1 https://github.com/wikimedia/mediawiki.git mediawiki
+          fi
+
+      - name: Install mago
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(gh api repos/carthage-software/mago/releases/latest --jq .tag_name)
+          curl -sL "https://github.com/carthage-software/mago/releases/download/${tag}/mago-${tag}-x86_64-unknown-linux-gnu.tar.gz" | tar -xz
+          echo "$PWD/mago-${tag}-x86_64-unknown-linux-gnu" >> "$GITHUB_PATH"
+
+      - name: Format and measure
+        run: |
+          mago format
+
+          changed=$(git -C mediawiki diff --name-only | wc -l)
+          total=$(git -C mediawiki ls-files '*.php' | wc -l)
+          shortstat=$(git -C mediawiki diff --shortstat)
+
+          {
+            echo "## mago vs MediaWiki core"
+            echo
+            echo "- mago: $(mago --version)"
+            echo "- MediaWiki: wikimedia/mediawiki@${{ steps.mediawiki.outputs.sha }}"
+            echo "- PHP files: ${total}"
+            echo "- Files mago would change: **${changed}**"
+            echo "- ${shortstat:-no changes}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "Files changed: ${changed} / ${total}"
+          echo "${shortstat:-no changes}"
+
+          # Keep the cached checkout pristine.
+          git -C mediawiki reset --hard --quiet
