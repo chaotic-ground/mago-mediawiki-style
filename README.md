@@ -40,6 +40,31 @@ The numbers below are written by the Parity workflow after every run.
 - MediaWiki: [wikimedia/mediawiki@b507ce5](https://github.com/wikimedia/mediawiki/commit/b507ce5b3ca49856de41b1358d763bcaa2ae8497)
 - Files mago would change: **5349** of 5540 PHP files
 - 5349 files changed, 339395 insertions(+), 318837 deletions(-)
+
+First 20 lines of the diff:
+
+````diff
+diff --git a/.phan/config.php b/.phan/config.php
+index e86bb61..756db1d 100644
+--- a/.phan/config.php
++++ b/.phan/config.php
+@@ -7,7 +7,7 @@
+ $cfg = require __DIR__ . '/../vendor/mediawiki/mediawiki-phan-config/src/config.php';
+ 
+ // Unset the default value to make sure we use that from composer.json.
+-unset( $cfg['minimum_target_php_version'] );
++unset($cfg['minimum_target_php_version']);
+ 
+ $cfg['file_list'] = array_merge(
+ 	$cfg['file_list'],
+@@ -18,7 +18,7 @@ $cfg['file_list'] = array_merge(
+ 		// @todo This isn't working yet, see globals_type_map below
+ 		// 'includes/Setup.php',
+ 		'tests/phpunit/MediaWikiIntegrationTestCase.php',
+-		'tests/phpunit/includes/TestUser.php',
++		'tests/phpunit/includes/TestUser.php'
+ 	]
+````
 <!-- METRICS:END -->
 
 ## How it works
