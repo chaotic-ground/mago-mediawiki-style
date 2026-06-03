@@ -6,7 +6,7 @@
 
 # The newest PHP version supported by both MediaWiki (require.php in its
 # composer.json) and mago. The Parity workflow recomputes and rewrites it.
-php-version = "8.3"
+php-version = "8.6"
 
 [source]
 paths = ["mediawiki"]
