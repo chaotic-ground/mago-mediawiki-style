@@ -75,6 +75,9 @@ jobs:
           echo "Files changed: ${changed} / ${total}"
           echo "${shortstat:-no changes}"
 
+          # Keep a sample of the diff for the README before resetting.
+          git -C mediawiki diff | head -20 > "$RUNNER_TEMP/parity-sample.diff"
+
           # Keep the cached checkout pristine.
           git -C mediawiki reset --hard --quiet
 
@@ -92,10 +95,31 @@ jobs:
           printf '{"schemaVersion":1,"label":"mago would change","message":"%s of %s files","color":"%s"}\n' \
             "$CHANGED" "$TOTAL" "$color" > .github/badges/parity.json
 
-          metrics=$(printf -- '- Measured: %s\n- %s\n- MediaWiki: [wikimedia/mediawiki@%.7s](https://github.com/wikimedia/mediawiki/commit/%s)\n- Files mago would change: **%s** of %s PHP files\n- %s' \
-            "$(date -u +%F)" "$MAGO" "$MEDIAWIKI_SHA" "$MEDIAWIKI_SHA" "$CHANGED" "$TOTAL" "$SHORTSTAT")
-          awk -v metrics="$metrics" '
-            /<!-- METRICS:START -->/ { print; print metrics; skip = 1; next }
+          # Build the metrics block in a file and splice it in with getline,
+          # so backslashes in the diff sample survive (awk -v would mangle them).
+          {
+            printf -- '- Measured: %s\n- %s\n- MediaWiki: [wikimedia/mediawiki@%.7s](https://github.com/wikimedia/mediawiki/commit/%s)\n- Files mago would change: **%s** of %s PHP files\n- %s\n' \
+              "$(date -u +%F)" "$MAGO" "$MEDIAWIKI_SHA" "$MEDIAWIKI_SHA" "$CHANGED" "$TOTAL" "$SHORTSTAT"
+            if [ -s "$RUNNER_TEMP/parity-sample.diff" ]; then
+              echo
+              echo 'First 20 lines of the diff:'
+              echo
+              # A four-backtick fence: a context line of the diff itself could
+              # start with three backticks and would close a normal fence.
+              echo '````diff'
+              cat "$RUNNER_TEMP/parity-sample.diff"
+              echo '````'
+            fi
+          } > "$RUNNER_TEMP/metrics.md"
+          awk -v metricsfile="$RUNNER_TEMP/metrics.md" '
+            /<!-- METRICS:START -->/ {
+              print
+              while ( ( getline line < metricsfile ) > 0 ) {
+                print line
+              }
+              skip = 1
+              next
+            }
             /<!-- METRICS:END -->/ { skip = 0 }
             !skip
           ' README.md > README.md.tmp
