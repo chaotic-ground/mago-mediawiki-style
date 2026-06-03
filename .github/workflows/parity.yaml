@@ -43,13 +43,8 @@ jobs:
             git clone --depth=1 https://github.com/wikimedia/mediawiki.git mediawiki
           fi
 
-      - name: Install mago
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          tag=$(gh api repos/carthage-software/mago/releases/latest --jq .tag_name)
-          curl -sL "https://github.com/carthage-software/mago/releases/download/${tag}/mago-${tag}-x86_64-unknown-linux-gnu.tar.gz" | tar -xz
-          echo "$PWD/mago-${tag}-x86_64-unknown-linux-gnu" >> "$GITHUB_PATH"
+      - name: Set up Mago
+        uses: nhedger/setup-mago@v1
 
       - name: Format and measure
         id: measure
