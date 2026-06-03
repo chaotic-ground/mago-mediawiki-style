@@ -1,5 +1,7 @@
 # mago-mediawiki-style
 
+![Files mago would change](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fchaotic-ground%2Fmago-mediawiki-style%2Fmain%2F.github%2Fbadges%2Fparity.json)
+
 An experiment: maintain a [mago] configuration that reproduces the
 [MediaWiki coding style][mw-style] (as enforced by
 [mediawiki-codesniffer]), measured by running `mago format` against the
@@ -28,8 +30,13 @@ configured away:
 - mago rewraps multi-line conditions that fit within the print width and
   may add clarifying parentheses around arithmetic inside comparisons.
 
-Baseline (mago 1.29.0, 2026-06): 5349 of 5540 PHP files changed,
-roughly +339k/-319k lines.
+## Current baseline
+
+The numbers below are written by the Parity workflow after every run.
+
+<!-- METRICS:START -->
+_No run recorded yet._
+<!-- METRICS:END -->
 
 ## How it works
 
@@ -38,8 +45,9 @@ roughly +339k/-319k lines.
   single quotes, no space after casts, no trailing commas, and so on).
 - The [Parity workflow](.github/workflows/parity.yaml) shallow-clones the
   latest `wikimedia/mediawiki` (cached between runs), installs the latest
-  mago release, runs `mago format`, and reports the diff size in the job
-  summary. It never fails on a non-zero diff; it is a tracker, not a gate.
+  mago release, runs `mago format`, and writes the diff size to the job
+  summary, the badge above, and the baseline section of this README.
+  It never fails on a non-zero diff; it is a tracker, not a gate.
 
 ## Running locally
 

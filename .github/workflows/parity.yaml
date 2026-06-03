@@ -9,9 +9,15 @@ on:
     - cron: '17 3 * * 1'
   workflow_dispatch:
 
+concurrency:
+  group: parity
+  cancel-in-progress: false
+
 jobs:
   parity:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
 
@@ -46,12 +52,20 @@ jobs:
           echo "$PWD/mago-${tag}-x86_64-unknown-linux-gnu" >> "$GITHUB_PATH"
 
       - name: Format and measure
+        id: measure
         run: |
           mago format
 
           changed=$(git -C mediawiki diff --name-only | wc -l)
           total=$(git -C mediawiki ls-files '*.php' | wc -l)
-          shortstat=$(git -C mediawiki diff --shortstat)
+          shortstat=$(git -C mediawiki diff --shortstat | sed 's/^ *//')
+
+          {
+            echo "changed=${changed}"
+            echo "total=${total}"
+            echo "shortstat=${shortstat:-no changes}"
+            echo "mago=$(mago --version)"
+          } >> "$GITHUB_OUTPUT"
 
           {
             echo "## mago vs MediaWiki core"
@@ -68,3 +82,36 @@ jobs:
 
           # Keep the cached checkout pristine.
           git -C mediawiki reset --hard --quiet
+
+      - name: Update README and badge
+        if: github.event_name != 'pull_request'
+        env:
+          CHANGED: ${{ steps.measure.outputs.changed }}
+          TOTAL: ${{ steps.measure.outputs.total }}
+          SHORTSTAT: ${{ steps.measure.outputs.shortstat }}
+          MAGO: ${{ steps.measure.outputs.mago }}
+          MEDIAWIKI_SHA: ${{ steps.mediawiki.outputs.sha }}
+        run: |
+          mkdir -p .github/badges
+          if [ "$CHANGED" -eq 0 ]; then color=brightgreen; else color=orange; fi
+          printf '{"schemaVersion":1,"label":"mago would change","message":"%s of %s files","color":"%s"}\n' \
+            "$CHANGED" "$TOTAL" "$color" > .github/badges/parity.json
+
+          metrics=$(printf -- '- Measured: %s\n- %s\n- MediaWiki: [wikimedia/mediawiki@%.7s](https://github.com/wikimedia/mediawiki/commit/%s)\n- Files mago would change: **%s** of %s PHP files\n- %s' \
+            "$(date -u +%F)" "$MAGO" "$MEDIAWIKI_SHA" "$MEDIAWIKI_SHA" "$CHANGED" "$TOTAL" "$SHORTSTAT")
+          awk -v metrics="$metrics" '
+            /<!-- METRICS:START -->/ { print; print metrics; skip = 1; next }
+            /<!-- METRICS:END -->/ { skip = 0 }
+            !skip
+          ' README.md > README.md.tmp
+          mv README.md.tmp README.md
+
+          git add README.md .github/badges/parity.json
+          if git diff --cached --quiet; then
+            echo "Metrics unchanged."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: update parity metrics [skip ci]'
+          git push
