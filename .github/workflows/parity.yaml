@@ -51,22 +51,21 @@ jobs:
           mago_max=$(mago --php-version 99.0 config 2>&1 \
             | grep -oE 'maximum supported version is [0-9]+\.[0-9]+' \
             | grep -oE '[0-9]+\.[0-9]+$' || true)
-          # MediaWiki's machine-readable constraint is a lower bound only; its
-          # documented upper bound (Compatibility#PHP on mediawiki.org) tracks
-          # the latest released PHP, so use that as the proxy.
-          php_latest=$(curl -s 'https://www.php.net/releases/?json' \
-            | jq -r 'to_entries | map(.value.version) | .[]' \
-            | grep -E '^[0-9.]+$' | sort -V | tail -1 \
+          # MediaWiki's repo only encodes its lower bound; the documented upper
+          # bound lives on mediawiki.org as a template (the Compatibility page
+          # transcludes it). It documents the stable branch, which is the
+          # closest maintained machine-readable value for core's support.
+          mw_max=$(curl -s 'https://www.mediawiki.org/w/index.php?title=Template:MW_stable_php_maximum_requirement&action=raw' \
             | grep -oE '^[0-9]+\.[0-9]+' || true)
-          if [ -z "$mw_min" ] || [ -z "$mago_max" ] || [ -z "$php_latest" ]; then
-            echo "Could not detect versions (MediaWiki min: '$mw_min', mago max: '$mago_max', PHP latest: '$php_latest')" >&2
+          if [ -z "$mw_min" ] || [ -z "$mago_max" ] || [ -z "$mw_max" ]; then
+            echo "Could not detect versions (MediaWiki min: '$mw_min', mago max: '$mago_max', MediaWiki max: '$mw_max')" >&2
             exit 1
           fi
-          version=$(printf '%s\n%s\n' "$mago_max" "$php_latest" | sort -V | head -1)
+          version=$(printf '%s\n%s\n' "$mago_max" "$mw_max" | sort -V | head -1)
           if ! printf '%s\n%s\n' "$mw_min" "$version" | sort -V -C; then
             echo "::warning::newest mutual version ($version) is below MediaWiki's minimum ($mw_min)"
           fi
-          echo "MediaWiki >= $mw_min, mago <= $mago_max, latest PHP release $php_latest -> $version"
+          echo "MediaWiki >= $mw_min and <= $mw_max, mago <= $mago_max -> $version"
           sed -i -E "s/^php-version = \"[^\"]*\"/php-version = \"$version\"/" mago.toml
           echo "version=$version" >> "$GITHUB_OUTPUT"
 

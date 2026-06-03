@@ -5,9 +5,10 @@
 # for the list of known differences that cannot be configured away.
 
 # The newest PHP version supported by both MediaWiki and mago. The Parity
-# workflow recomputes and rewrites it: max(require.php lower bound) capped
-# by mago's maximum and by the latest released PHP, which is what
-# MediaWiki's documented upper bound (Compatibility#PHP) tracks.
+# workflow recomputes and rewrites it: mago's maximum capped by MediaWiki's
+# documented upper bound, which mediawiki.org maintains as
+# Template:MW stable php maximum requirement (transcluded by the
+# Compatibility page).
 php-version = "8.5"
 
 [source]
