@@ -13,20 +13,24 @@ concurrency:
   group: parity
   cancel-in-progress: false
 
+permissions: {}
+
 jobs:
   parity:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Resolve latest MediaWiki commit
         id: mediawiki
         run: |
           echo "sha=$(git ls-remote https://github.com/wikimedia/mediawiki.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v5
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: mediawiki
           key: mediawiki-src-${{ steps.mediawiki.outputs.sha }}
@@ -34,7 +38,7 @@ jobs:
             mediawiki-src-
 
       - name: Check out MediaWiki
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: wikimedia/mediawiki
           path: mediawiki
@@ -42,7 +46,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Mago
-        uses: nhedger/setup-mago@v1
+        uses: nhedger/setup-mago@b1b8f89862e133daf595f9ec95c7193c36ccfc14 # v1.0.0
 
       - name: Pin php-version to the newest mutually supported
         id: php
@@ -71,6 +75,9 @@ jobs:
 
       - name: Format and measure
         id: measure
+        env:
+          MEDIAWIKI_SHA: ${{ steps.mediawiki.outputs.sha }}
+          PHP_VERSION: ${{ steps.php.outputs.version }}
         run: |
           mago format
 
@@ -89,8 +96,8 @@ jobs:
             echo "## mago vs MediaWiki core"
             echo
             echo "- mago: $(mago --version)"
-            echo "- MediaWiki: wikimedia/mediawiki@${{ steps.mediawiki.outputs.sha }}"
-            echo "- PHP version: ${{ steps.php.outputs.version }}"
+            echo "- MediaWiki: wikimedia/mediawiki@${MEDIAWIKI_SHA}"
+            echo "- PHP version: ${PHP_VERSION}"
             echo "- PHP files: ${total}"
             echo "- Files mago would change: **${changed}**"
             echo "- ${shortstat:-no changes}"
@@ -114,6 +121,7 @@ jobs:
           MAGO: ${{ steps.measure.outputs.mago }}
           MEDIAWIKI_SHA: ${{ steps.mediawiki.outputs.sha }}
           PHP_VERSION: ${{ steps.php.outputs.version }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           mkdir -p .github/badges
           if [ "$CHANGED" -eq 0 ]; then color=brightgreen; else color=orange; fi
@@ -162,4 +170,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'chore: update parity metrics [skip ci]'
+          # The checkout does not persist credentials, so authenticate the
+          # push explicitly.
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}"
           git push
