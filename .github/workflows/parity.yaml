@@ -33,18 +33,36 @@ jobs:
           restore-keys: |
             mediawiki-src-
 
-      - name: Clone or update MediaWiki
-        run: |
-          if [ -d mediawiki/.git ]; then
-            git -C mediawiki fetch --depth=1 origin master
-            git -C mediawiki reset --hard origin/master
-            git -C mediawiki clean -fdx --quiet
-          else
-            git clone --depth=1 https://github.com/wikimedia/mediawiki.git mediawiki
-          fi
+      - name: Check out MediaWiki
+        uses: actions/checkout@v6
+        with:
+          repository: wikimedia/mediawiki
+          path: mediawiki
+          fetch-depth: 1
+          persist-credentials: false
 
       - name: Set up Mago
         uses: nhedger/setup-mago@v1
+
+      - name: Pin php-version to the newest mutually supported
+        id: php
+        run: |
+          mw_min=$(jq -r '.require.php' mediawiki/composer.json | grep -oE '[0-9]+\.[0-9]+' | head -1)
+          mago_max=$(mago --php-version 99.0 config 2>&1 \
+            | grep -oE 'maximum supported version is [0-9]+\.[0-9]+' \
+            | grep -oE '[0-9]+\.[0-9]+$' || true)
+          if [ -z "$mw_min" ] || [ -z "$mago_max" ]; then
+            echo "Could not detect versions (MediaWiki min: '$mw_min', mago max: '$mago_max')" >&2
+            exit 1
+          fi
+          # MediaWiki's composer constraint is a lower bound only, so the
+          # newest mutually supported version is mago's maximum, unless mago
+          # has fallen behind MediaWiki's minimum.
+          if ! printf '%s\n%s\n' "$mw_min" "$mago_max" | sort -V -C; then
+            echo "::warning::mago's maximum ($mago_max) is below MediaWiki's minimum ($mw_min)"
+          fi
+          sed -i -E "s/^php-version = \"[^\"]*\"/php-version = \"$mago_max\"/" mago.toml
+          echo "version=$mago_max" >> "$GITHUB_OUTPUT"
 
       - name: Format and measure
         id: measure
@@ -67,6 +85,7 @@ jobs:
             echo
             echo "- mago: $(mago --version)"
             echo "- MediaWiki: wikimedia/mediawiki@${{ steps.mediawiki.outputs.sha }}"
+            echo "- PHP version: ${{ steps.php.outputs.version }}"
             echo "- PHP files: ${total}"
             echo "- Files mago would change: **${changed}**"
             echo "- ${shortstat:-no changes}"
@@ -89,6 +108,7 @@ jobs:
           SHORTSTAT: ${{ steps.measure.outputs.shortstat }}
           MAGO: ${{ steps.measure.outputs.mago }}
           MEDIAWIKI_SHA: ${{ steps.mediawiki.outputs.sha }}
+          PHP_VERSION: ${{ steps.php.outputs.version }}
         run: |
           mkdir -p .github/badges
           if [ "$CHANGED" -eq 0 ]; then color=brightgreen; else color=orange; fi
@@ -98,8 +118,8 @@ jobs:
           # Build the metrics block in a file and splice it in with getline,
           # so backslashes in the diff sample survive (awk -v would mangle them).
           {
-            printf -- '- Measured: %s\n- %s\n- MediaWiki: [wikimedia/mediawiki@%.7s](https://github.com/wikimedia/mediawiki/commit/%s)\n- Files mago would change: **%s** of %s PHP files\n- %s\n' \
-              "$(date -u +%F)" "$MAGO" "$MEDIAWIKI_SHA" "$MEDIAWIKI_SHA" "$CHANGED" "$TOTAL" "$SHORTSTAT"
+            printf -- '- Measured: %s\n- %s\n- MediaWiki: [wikimedia/mediawiki@%.7s](https://github.com/wikimedia/mediawiki/commit/%s)\n- PHP version: %s\n- Files mago would change: **%s** of %s PHP files\n- %s\n' \
+              "$(date -u +%F)" "$MAGO" "$MEDIAWIKI_SHA" "$MEDIAWIKI_SHA" "$PHP_VERSION" "$CHANGED" "$TOTAL" "$SHORTSTAT"
             if [ -s "$RUNNER_TEMP/parity-sample.diff" ]; then
               echo
               echo 'First 20 lines of the diff:'
@@ -125,7 +145,7 @@ jobs:
           ' README.md > README.md.tmp
           mv README.md.tmp README.md
 
-          git add README.md .github/badges/parity.json
+          git add README.md mago.toml .github/badges/parity.json
           if git diff --cached --quiet; then
             echo "Metrics unchanged."
             exit 0

@@ -4,6 +4,8 @@
 # A zero diff against MediaWiki core is not reachable yet; see README.md
 # for the list of known differences that cannot be configured away.
 
+# The newest PHP version supported by both MediaWiki (require.php in its
+# composer.json) and mago. The Parity workflow recomputes and rewrites it.
 php-version = "8.3"
 
 [source]
