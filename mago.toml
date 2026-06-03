@@ -8,7 +8,7 @@
 # workflow recomputes and rewrites it: max(require.php lower bound) capped
 # by mago's maximum and by the latest released PHP, which is what
 # MediaWiki's documented upper bound (Compatibility#PHP) tracks.
-php-version = "8.6"
+php-version = "8.5"
 
 [source]
 paths = ["mediawiki"]
