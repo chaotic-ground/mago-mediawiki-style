@@ -86,6 +86,32 @@ index e86bb61b..756db1d9 100644
   summary, the badge above, and the baseline section of this README.
   It never fails on a non-zero diff; it is a tracker, not a gate.
 
+## Use in your project
+
+`style.toml` holds only the formatter rules, so other projects can depend on
+it. Add this repository as a Composer VCS source, require it, then `extends`
+the installed file from your own `mago.toml`:
+
+```json
+"repositories": [
+	{ "type": "vcs", "url": "https://github.com/chaotic-ground/mago-mediawiki-style" }
+],
+"require-dev": {
+	"chaotic-ground/mago-mediawiki-style": "^0.1"
+}
+```
+
+```toml
+extends = "vendor/chaotic-ground/mago-mediawiki-style/style.toml"
+php-version = "8.1"
+
+[source]
+paths = ["includes", "maintenance"]
+```
+
+mago reproduces only part of the MediaWiki style (see the known differences
+above), so pair it with [mediawiki-codesniffer] for the sniffs mago cannot do.
+
 ## Running locally
 
 ```sh
