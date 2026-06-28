@@ -1,0 +1,17 @@
+{
+	"name": "chaotic-ground/mago-mediawiki-style",
+	"description": "A mago configuration that approximates the MediaWiki coding style.",
+	"type": "library",
+	"license": "GPL-3.0-or-later",
+	"keywords": [
+		"mago",
+		"mediawiki",
+		"coding-standards",
+		"coding-style",
+		"static analysis"
+	],
+	"support": {
+		"source": "https://github.com/chaotic-ground/mago-mediawiki-style",
+		"issues": "https://github.com/chaotic-ground/mago-mediawiki-style/issues"
+	}
+}
