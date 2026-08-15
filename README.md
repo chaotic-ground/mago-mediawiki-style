@@ -27,8 +27,10 @@ configured away:
 - mago reflows broken method chains onto one call per line, while core
   often groups several calls on a line (e.g. `->caller( __METHOD__ )
   ->fetchRow()`), even with the `preserve-breaking-*` settings.
-- mago rewraps multi-line conditions that fit within the print width and
-  may add clarifying parentheses around arithmetic inside comparisons.
+- mago collapses a multi-line condition that fits within the print width
+  onto a single line. `preserve-breaking-binary-expression` keeps the
+  breaks, but indents the continuation lines differently from core, which
+  changes more lines than the collapse does.
 - `trailing-comma` is a single global boolean: mago either adds trailing
   commas to every multi-line structure or removes them from all of them,
   with no preserve option and no per-construct control. MediaWiki core

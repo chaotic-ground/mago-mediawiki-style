@@ -30,12 +30,47 @@ space-after-cast-unary-prefix-operators = false
 # MediaWiki puts spaces inside grouping parentheses: `( $a + $b )`.
 space-within-grouping-parenthesis = true
 
+# MediaWiki spaces the parameter list off from the keyword, for arrow
+# functions as much as for closures: `fn ( $x ) => $x`.
+space-before-arrow-function-parameter-list-parenthesis = true
+
+# MediaWiki keeps a broken binary expression's operator at the end of the
+# line: `$a &&` and `'foo' .`, not a leading `&&` on the next line.
+line-before-binary-operator = false
+
+# MediaWiki relies on PHP's precedence rather than adding parentheses
+# around arithmetic under a comparison: `$i === $retries - 1`.
+omit-redundant-arithmetic-binary-expression-parentheses = true
+
+# MediaWiki parenthesises `new` before a member access:
+# `( new Foo )->bar()`, not PHP 8.4's `new Foo->bar()`.
+parentheses-around-new-in-member-access = true
+
+# MediaWiki writes heredoc bodies flush against the left margin.
+indent-heredoc = false
+
 # MediaWiki files start with `<?php` immediately followed by code or a
 # file-level doc comment.
 empty-line-after-opening-tag = false
 
 # MediaWiki does not align array tables or assignments.
 array-table-style-alignment = false
+
+# Blank lines are the author's call. mago preserves the ones already in the
+# source either way; these settings stop it from inserting more.
+empty-line-after-symbols = false
+empty-line-after-declare = false
+empty-line-between-same-symbols = false
+separate-class-like-members = false
+
+# MediaWiki keeps a constructor's promoted properties on one line when they
+# fit within the print width.
+break-promoted-properties-list = false
+
+# MediaWiki starts a broken chain on the receiver's line:
+# `$store->newSelectQueryBuilder( $db )` followed by `->joinPage()`.
+method-chain-breaking-style = "same_line"
+first-method-chain-on-new-line = false
 
 # Do not reorder or regroup use statements; MediaWiki core is not
 # consistently sorted.
