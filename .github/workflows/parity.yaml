@@ -45,8 +45,12 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      # latest is stated rather than left to the default: this job exists to measure the newest
+      # mago, and the default would start reading composer.json the day anything adds mago there.
       - name: Set up Mago
-        uses: nhedger/setup-mago@b1b8f89862e133daf595f9ec95c7193c36ccfc14 # v1.0.0
+        uses: chaotic-ground/setup-mago@2b05b7dc0ef2b491d204a80173c5e573b208d032 # v1.0.0
+        with:
+          version: latest
 
       - name: Pin php-version to the newest mutually supported
         id: php
