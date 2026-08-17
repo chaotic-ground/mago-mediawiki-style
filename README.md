@@ -43,7 +43,7 @@ The numbers below are written by the Parity workflow after every run.
 
 <!-- METRICS:START -->
 
-- Measured: 2026-08-15
+- Measured: 2026-08-17
 - mago 1.46.0
 - MediaWiki: [wikimedia/mediawiki@357281a](https://github.com/wikimedia/mediawiki/commit/357281a8caa63c3c38de445006e8d77ec62957bf)
 - PHP version: 8.5
