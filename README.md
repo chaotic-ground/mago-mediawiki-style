@@ -43,18 +43,18 @@ The numbers below are written by the Parity workflow after every run.
 
 <!-- METRICS:START -->
 
-- Measured: 2026-10-05
-- mago 1.51.2
-- MediaWiki: [wikimedia/mediawiki@eb54d04](https://github.com/wikimedia/mediawiki/commit/eb54d047e4304d48da2c11a00976c9d71c19b8a8)
+- Measured: 2026-10-12
+- mago 1.56.3
+- MediaWiki: [wikimedia/mediawiki@c968ff0](https://github.com/wikimedia/mediawiki/commit/c968ff03039cb1c2db6d43c21c9fab6344763c68)
 - PHP version: 8.5
-- Files mago would change: **5461** of 5658 PHP files
-- 5461 files changed, 346525 insertions(+), 326289 deletions(-)
+- Files mago would change: **5466** of 5663 PHP files
+- 5466 files changed, 347398 insertions(+), 327036 deletions(-)
 
 First 20 lines of the diff:
 
 ````diff
 diff --git a/.phan/config.php b/.phan/config.php
-index 53268f0..31cec04 100644
+index 4082741..cba71e6 100644
 --- a/.phan/config.php
 +++ b/.phan/config.php
 @@ -7,7 +7,7 @@
